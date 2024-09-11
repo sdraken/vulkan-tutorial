@@ -52,4 +52,18 @@ the callback is set up by creating a debug messenger and giving it a pointer to 
 
 The creation of the **VkDebugUtilsMessengerEXT** object needs an already created **VkInstance**, and the **VkDebugUtilsMessengerEXT** object needs to be deallocated before **VkInstance** is. So our debug messenger can't actually debug any issues in the **vkCreateInstance** and **vkDestroyInstance** calls. To fix this we can create a seperate **VkDebugUtilsMessengerEXT** object specifically for those two function calls.
 
+# Physical devices
+The next step after the Vulkan library has been initalized through a **VkInstance**, is to look for and select graphics cards (we can select multiple).  
+
+The graphics card that we’ll end up selecting will be stored in a **VkPhysicalDevice** handle. The grafics cards are queried through the **vkEnumeratePhysicalDevices** function that enumerates the physical devices accessible to a Vulkan instance.
+
+If we have a **VkPhysicalDevice** handle corresponding to a available graphics card, we can use different functions to query different information about the grahics card.
+
+- **vkGetPhysicalDeviceProperties** Get basic device properties like the name, type and supported Vulkan version
+- **vkGetPhysicalDeviceFeatures** Get the support for optional features like texture compression, 64 bit floats and
+multi viewport rendering (useful for VR)
+- **vkGetPhysicalDeviceQueueFamilyProperties** Get what queuefamilies the graphics card supports
+
+# Logical devices
+After we have picked a physical device we need to setup a logical device to interface with it. We need to specify some properties for our logical device and what device features and QueueFamilies we're gonna use.
 

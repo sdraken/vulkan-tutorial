@@ -6,6 +6,7 @@
 #include <cstdlib>
 #include <vector>
 #include <cstring>
+#include <optional>
 
 //window dimensions
 const uint32_t WIDTH = 800;     
@@ -41,6 +42,15 @@ void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT
     }
 }
 
+//struct to keep track of indices of queue families (std::optional is used since all values of uint32_t can be an index)
+struct QueueFamilyIndices {
+    std::optional<uint32_t> graphicsFamily;
+
+    bool isComplete() {
+        return graphicsFamily.has_value();
+    }
+};
+
 class HelloTriangleApplication {
     public:
 
@@ -54,24 +64,31 @@ class HelloTriangleApplication {
 
     private:
         GLFWwindow* window;
+        
         VkInstance instance;
         VkDebugUtilsMessengerEXT debugMessenger;
+        
+        VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
+        VkDevice device;
+
+        VkQueue graphicsQueue;
+
         //initiates GLFW and creates a window
         void initWindow(){
-            
             glfwInit();
             
             glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);                   //tells GLFW not to make OpenGL context (default)
             glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);                     //disable resizable windows
 
             window = glfwCreateWindow(WIDTH,HEIGHT,"Vulkan",nullptr,nullptr);    //creates window
-
         }
 
         //initiates all Vulkan objects
         void initVulkan(){
             createInstance();
             setupDebugMessenger();
+            pickPhysicalDevice();
+            createLogicalDevice();
         }
 
         //loop while window remains open
@@ -83,6 +100,8 @@ class HelloTriangleApplication {
 
         //deallocate used resources
         void cleanup(){
+            vkDestroyDevice(device, nullptr);
+
             if (enableValidationLayers) {
                 DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
             }
@@ -172,6 +191,116 @@ class HelloTriangleApplication {
             }
         }
         
+        //go through all graphics cards and pick first suitable
+        void pickPhysicalDevice() {
+        uint32_t deviceCount = 0;
+        vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
+
+        if (deviceCount == 0) {
+            throw std::runtime_error("failed to find GPUs with Vulkan support!");
+        }
+
+        std::vector<VkPhysicalDevice> devices(deviceCount);
+        vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
+
+        for (const auto& device : devices) {
+            if (isDeviceSuitable(device)) {
+                physicalDevice = device;
+                break;
+            }
+        }
+
+        if (physicalDevice == VK_NULL_HANDLE) {
+            throw std::runtime_error("failed to find a suitable GPU!");
+        }
+    }
+
+        //create VkDevice and its 
+        void createLogicalDevice() {
+            QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
+
+            VkDeviceQueueCreateInfo queueCreateInfo{};
+            queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+            queueCreateInfo.queueFamilyIndex = indices.graphicsFamily.value();
+            queueCreateInfo.queueCount = 1;
+
+            float queuePriority = 1.0f;
+            queueCreateInfo.pQueuePriorities = &queuePriority;
+
+            VkPhysicalDeviceFeatures deviceFeatures{};                              //empty right now but we can add device features if needed
+
+            VkDeviceCreateInfo createInfo{};
+            createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+
+            createInfo.pQueueCreateInfos = &queueCreateInfo;
+            createInfo.queueCreateInfoCount = 1;
+
+            createInfo.pEnabledFeatures = &deviceFeatures;
+
+            createInfo.enabledExtensionCount = 0;
+
+            if (enableValidationLayers) {
+                createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
+                createInfo.ppEnabledLayerNames = validationLayers.data();
+            } else {
+                createInfo.enabledLayerCount = 0;
+            }
+
+            if (vkCreateDevice(physicalDevice, &createInfo, nullptr, &device) != VK_SUCCESS) {
+                throw std::runtime_error("failed to create logical device!");
+            }
+
+            vkGetDeviceQueue(device, indices.graphicsFamily.value(), 0, &graphicsQueue);
+        }
+
+        //does the device have required queue families?
+        bool isDeviceSuitable(VkPhysicalDevice device) {
+            QueueFamilyIndices indices = findQueueFamilies(device);
+
+            return indices.isComplete();
+        }
+
+        //return QueueFamilyIndices struct that tells what queue families a VkPhysicalDevice supports and what indices they have
+        QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device) {
+            QueueFamilyIndices indices;
+
+            uint32_t queueFamilyCount = 0;
+            vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
+
+            std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
+            vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
+
+            int i = 0;
+            for (const auto& queueFamily : queueFamilies) {
+                if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+                    indices.graphicsFamily = i;
+                }
+
+                if (indices.isComplete()) {
+                    break;
+                }
+
+                i++;
+            }
+
+            return indices;
+        }
+
+        //get required GLFW extensions and extensions needed for VkDebugUtilsMessengerEXT if we're debugging
+        std::vector<const char*> getRequiredExtensions() {
+            uint32_t glfwExtensionCount = 0;
+            const char** glfwExtensions;
+            glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+
+            std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
+
+            if (enableValidationLayers) {
+                extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+            }
+
+            return extensions;
+        }
+
         //check if all validation layers in validationLayers is available
         bool checkValidationLayerSupport(){
             uint32_t layerCount;
@@ -196,21 +325,6 @@ class HelloTriangleApplication {
             }
 
             return true;
-        }
-
-        //get required GLFW extensions and extensions needed for VkDebugUtilsMessengerEXT if we're debugging
-        std::vector<const char*> getRequiredExtensions() {
-            uint32_t glfwExtensionCount = 0;
-            const char** glfwExtensions;
-            glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-
-            std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
-
-            if (enableValidationLayers) {
-                extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-            }
-
-            return extensions;
         }
 
         //callback function to validation layer error messages
