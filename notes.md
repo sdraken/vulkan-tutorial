@@ -61,10 +61,10 @@ The graphics card that we’ll end up selecting will be stored in a **VkPhysical
 
 If we have a **VkPhysicalDevice** handle corresponding to a available graphics card, we can use different functions to query different information about the grahics card.
 
-- **vkGetPhysicalDeviceProperties** Get basic device properties like the name, type and supported Vulkan version
-- **vkGetPhysicalDeviceFeatures** Get the support for optional features like texture compression, 64 bit floats and
+- **vkGetPhysicalDeviceProperties**: Get basic device properties like the name, type and supported Vulkan version
+- **vkGetPhysicalDeviceFeatures**: Get the support for optional features like texture compression, 64 bit floats and
 multi viewport rendering (useful for VR)
-- **vkGetPhysicalDeviceQueueFamilyProperties** Get a list of queue families and the number of queues of each queue family.
+- **vkGetPhysicalDeviceQueueFamilyProperties**: Get a list of queue families and the number of queues of each queue family.
 
 ### Queue families
 Almost every operation in Vulkan requires commands to be submitted to the GPU, this is done through queues. The queue families of a GPU are groups of queues that support the same operations. For example, the GPU can have a queue family **A** consisting of **x** queues supporting the same **n** operations, and a different queue family **B** consisting of **y** queues all supporting the same **m** operations different from queue family **A**.
@@ -83,5 +83,20 @@ Creating the **VkSurfaceKHR** object depends on what system you're on. In our ca
 We also need to make sure that our physical device supports presenting to the screen, so we need a physical device with a queue family that supports presenting. Support for presentation isn't checked with the **vkGetPhysicalDeviceQueueFamilyProperties** function, but rather **vkGetPhysicalDeviceSurfaceSupportKHR** that for every queue family queries if presentation support exists. Ideally we'd want to support both graphics operations (that we already needed) and presenting in the same queue family, so that we only need one queue. In the tutorial we don't assume this to be the case so we make another **VkQueue** handle to interface with the presentation queue. The two **VkQueue** handles point to the same underlying queue on my machine.
 
 ## Swap chain
+Swap chains can be seen as an array of presentable images waiting to be presented to the screen. One image is displayed at a time, but multiple images can be queued for presentation. An application can acquire the use of a presentable image, draw to it, and then present the image back to the swap chain. The general purpose of the swap chain is to synchronize the presentation of images with the refresh rate of the screen.
+
+Before you can create a swap chain you need to check for and enable the device extension for it. Actually, our device having a presentation queue implies that the swap chain extension must be supported, but it's good to be explicit about what functionality we're looking for. After confirming availability, the extension then needs to be enabled during the creation of the logical device.
+
+Next we need to check if the swap chain is compatible with our window surface, we use several functions to query the capabilities of the surface.
+- **vkGetPhysicalDeviceSurfaceCapabilitiesKH**:
+- **vkGetPhysicalDeviceSurfaceFormatsKHR**:
+- **vkGetPhysicalDeviceSurfacePresentModesKHR**
+
+For this tutorial swap chain support is sufficient if there is at least one supported image
+format and one supported presentation mode given our window surface.
+
+Support is now sufficient for creating a swap chain. Since we only required the bare minumum support, there might still be many different modes of varying optimality. So when creating our swapchain we pick our prefered settings out of what is available.
+
+After the swap chain has been created we need new VkImage handles to handle the images in the swap chain
 
 ## Image views
