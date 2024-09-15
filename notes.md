@@ -97,6 +97,10 @@ format and one supported presentation mode given our window surface.
 
 Support is now sufficient for creating a swap chain. Since we only required the bare minumum support, there might still be many different modes of varying optimality. So when creating our swapchain we pick our prefered settings out of what is available.
 
-After the swap chain has been created we need new VkImage handles to handle the images in the swap chain
+After the swap chain has been created we need new **VkImage** handles to handle the images in the swap chain
 
 ## Image views
+The **VkImage** object holds the data for the image but it doesn't contain a lot of infromation on how to read it. To use any **VkImage** in a render pipeline we have to create a **VkImageView** object. The **VkImageView** describes how to access the image and which part of
+the image to access. 
+
+So to enable us to use the images in our swap chain, we need to create a **VkImageView** for every one of those images.
