@@ -119,6 +119,7 @@ class HelloTriangleApplication {
             createLogicalDevice();
             createSwapChain();
             createImageViews();
+            createGraphicsPipeline();
         }
 
         //loop while window remains open
@@ -382,6 +383,11 @@ class HelloTriangleApplication {
                     throw std::runtime_error("failed to create image views!");
                 }
             }
+        }
+
+        //create graphics pipeline
+        void createGraphicsPipeline() {
+
         }
 
         //tries finding prefered surface fromat, otherwise just use the first surface format specefied
