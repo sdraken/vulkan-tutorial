@@ -88,27 +88,21 @@ Swap chains can be seen as an array of presentable images waiting to be presente
 Before you can create a swap chain you need to check for and enable the device extension for it. Actually, our device having a presentation queue implies that the swap chain extension must be supported, but it's good to be explicit about what functionality we're looking for. After confirming availability, the extension then needs to be enabled during the creation of the logical device.
 
 Next we need to check if the swap chain is compatible with our window surface, we use several functions to query the capabilities of the surface.
-- **vkGetPhysicalDeviceSurfaceCapabilitiesKH**:
-- **vkGetPhysicalDeviceSurfaceFormatsKHR**:
+- **vkGetPhysicalDeviceSurfaceCapabilitiesKH**
+- **vkGetPhysicalDeviceSurfaceFormatsKHR**
 - **vkGetPhysicalDeviceSurfacePresentModesKHR**
 
 For this tutorial swap chain support is sufficient if there is at least one supported image
 format and one supported presentation mode given our window surface.
 
-Support is now sufficient for creating a swap chain. Since we only required the bare minimum support, there might still be many different modes of varying optimality. So when creating our swapchain we pick our preferred settings out of what is available.
-
-After the swap chain has been created we need new **VkImage** handles to handle the images in the swap chain
+Support is now sufficient for creating a swap chain. Since we only required the bare minimum support, there might still be many different modes of varying optimality. So when creating our swapchain we pick our preferred settings out of what is available. After the swap chain has been created we need new **VkImage** handles to the images in the swap chain
 
 ## Image views
-The **VkImage** object holds the data for the image but it doesn't contain a lot of information on how to read it. To use any **VkImage** in a render pipeline we have to create a **VkImageView** object. The **VkImageView** describes how to access the image and which part of
-the image to access.
-
-So to enable us to use the images in our swap chain, we need to create a **VkImageView** for every one of those images.
+The **VkImage** object holds the data for the image but it doesn't contain a lot of information on how to read it. To use any **VkImage** in a render pipeline we have to create a **VkImageView** object. The **VkImageView** describes how to access the image and which part of the image to access. So to enable us to use the images in our swap chain, we need to create a **VkImageView** for every one of those images.
 
 # Chapter 2.3 Graphics pipeline basics
 ## Introduction
-The graphics pipeline is a sequence of operations that take the vertices and textures of your meshes all the
-way to the pixels in the render targets. A simple overview of the sequence looks like
+The graphics pipeline is a sequence of operations that take the vertices and textures of your meshes all the way to the pixels in the render targets. A simple overview of the sequence looks like
 
 ```mermaid
 graph TB
@@ -200,10 +194,20 @@ While most of the pipeline's state is baked into an immutable pipeline state obj
 - Line width
 - Blend constants
 
-You either configure these and bake them into the immutable pipeline state object, or set up the use of dynamic state. If dynamic state is used for the size of the viewport, it'll cause the configuration of the viewport size to be ignored during pipeline creation, and you'll need to specify this data during drawing time instead. Using dynamic state can result in a more flexible setup and is common for viewport and scissor state.
-
-Setting up dynamic state uses **VkPipelineDynamicStateCreateInfo**.
+You either configure these and bake them into the immutable pipeline state object, or set up the use of dynamic state. If dynamic state is used for the size of the viewport, it'll cause the configuration of the viewport size to be ignored during pipeline creation, and you'll need to specify this data during drawing time instead. Using dynamic state can result in a more flexible setup and is common for viewport and scissor state. Setting up dynamic state uses **VkPipelineDynamicStateCreateInfo**.
 
 ## Pipeline layout
 Similar to how dynamic state allows us to change some state at draw time, we can use uniform values in shaders to alter the behavior of shaders without having to recreate them. The uniform values (and push values) need to be specified during pipeline creation by creating a **VkPipelineLayout** object. Even if we aren't using this functionality, a **VkPipelineLayout** object is still required for creating a graphics pipeline so we need to at least create an empty pipeline layout. We'll refer to the the pipeline layout from other functions later, so we create a class member to store it.
+
+## Render pass
+When rendering, we render to a framebuffer, containing a set of attachments. There are different types of attachments like color and depth attachments, each represented by a **VkImageView** object. For example, a framebuffer that has both a color and depth attachments (so 2 **VkImageView** objects) can be used for basic 3D rendering.
+
+Before we can use the pipline we need to define the behavior and lifecycle of the attachments during a rendering process, this is the role of the **VkRenderPass** object. We need to specify,
+
+- how many attachments, and of what types?
+- what to do with data in attachments before/after rendering
+- Initial/Final layout
+- subpasses (only quickly mentioned but seems more important as project grows)
+
+After these have been specified we can create our **VkRenderPass** object.
 
