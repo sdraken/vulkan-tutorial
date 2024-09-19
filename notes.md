@@ -224,3 +224,14 @@ It has been mentioned that the render targets in Vulkan are Framebuffers, each c
 
 Every framebuffer is a **VkFramebuffer** object, so we'll make an array of them (similar to how we created **VkImageView** objects). For creation of each **VkFramebuffer** object we need to specify which render pass it has to be compatible with. Every attachments needs to be specified, each with a corresponding **VkImageView** object. Lastly we need to define the dimensions of the framebuffer.
 
+## Command buffers
+In Vulkan, all GPU commands (with a few exceptions) have to go through a **VkCommandBuffer** object. Command buffers creation is done through the use of a **VkCommandPool** object. One command pool is designed to be used by a single thread and manages the allocation/deallocation of command buffers within the same queue family. Creating a **VkCommandPool** is simple, just specify the queue family index and any additional flags. Once the **VkCommandPool** has been created, **VkCommandBuffer** objects can easily be made.
+
+with a **VkCommandBuffer** object we can record a sequence of commands. For example a basic draw sequence
+- Begin render pass
+- Bind to pipeline
+- Draw to Image
+- End render pass
+When the commands have been recorded into the command buffer, they can be submitted to the  queue for execution.
+
+
