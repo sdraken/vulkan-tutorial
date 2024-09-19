@@ -99,6 +99,7 @@ class HelloTriangleApplication {
         VkFormat swapChainImageFormat;
         VkExtent2D swapChainExtent;
         std::vector<VkImageView> swapChainImageViews;
+        std::vector<VkFramebuffer> swapChainFramebuffers;
 
         VkRenderPass renderPass;
         VkPipelineLayout pipelineLayout;
@@ -125,6 +126,7 @@ class HelloTriangleApplication {
             createImageViews();
             createRenderPass();
             createGraphicsPipeline();
+            createFramebuffers();
         }
 
         //loop while window remains open
@@ -136,6 +138,10 @@ class HelloTriangleApplication {
 
         //deallocate used resources
         void cleanup(){
+            for (auto framebuffer : swapChainFramebuffers) {
+                vkDestroyFramebuffer(device, framebuffer, nullptr);
+            }
+        
             vkDestroyPipeline(device, graphicsPipeline, nullptr);
             vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
             vkDestroyRenderPass(device, renderPass, nullptr);
@@ -536,6 +542,30 @@ class HelloTriangleApplication {
 
             vkDestroyShaderModule(device, fragShaderModule, nullptr);
             vkDestroyShaderModule(device, vertShaderModule, nullptr);
+        }
+
+        //create framebuffer for each image in the swapchain
+        void createFramebuffers() {
+            swapChainFramebuffers.resize(swapChainImageViews.size());
+
+            for (size_t i = 0; i < swapChainImageViews.size(); i++) {
+                VkImageView attachments[] = {
+                    swapChainImageViews[i]
+                };
+
+                VkFramebufferCreateInfo framebufferInfo{};
+                framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+                framebufferInfo.renderPass = renderPass;
+                framebufferInfo.attachmentCount = 1;
+                framebufferInfo.pAttachments = attachments;
+                framebufferInfo.width = swapChainExtent.width;
+                framebufferInfo.height = swapChainExtent.height;
+                framebufferInfo.layers = 1;
+
+                if (vkCreateFramebuffer(device, &framebufferInfo, nullptr, &swapChainFramebuffers[i]) != VK_SUCCESS) {
+                    throw std::runtime_error("failed to create framebuffer!");
+                }
+            }
         }
 
         //wrap shader binary into VkShaderModule
