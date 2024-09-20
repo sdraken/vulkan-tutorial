@@ -234,4 +234,31 @@ with a **VkCommandBuffer** object we can record a sequence of commands. For exam
 - End render pass
 When the commands have been recorded into the command buffer, they can be submitted to the  queue for execution.
 
+## Rendering and presentation
+Now everything is setup to implement a **drawFrame** function. The basic steps for the **drawFrame** are
 
+- Wait for previous frame to finish
+- Acquire an image from the swap chain
+- Record a command buffer which draws the scene onto that image
+- Submit the recorded command buffer
+- Present the swap chain image
+
+This implementation is basic suboptimal. We'll expand on the **drawFrame** later.
+
+### Synchronization
+Operations on the GPU in vulkan are automatically parallelized to a large extent. Loosely speaking, once we submit a command buffer the GPU will execute a lot of operations in parallel, without any consideration for synchronization. This is powerful because it allows the GPU to focus on what it does best, but a consequence is that we have to implement synchronization where an explicit order is important (for example, where results from some operations depend on other (potentially unfinished) operations).
+
+For our basic implementation of the **drawFrame** function there are 3 events that need to be synchronized,
+
+- Acquire an image from the swap chain
+- Execute commands that draw onto the acquired image
+- Present that image to the screen for presentation, returning it to the
+swapchain
+
+Each of these events are set in motion using a single function call, but they're all executed asynchronously on the GPU. The function calls themselves will return almost immediately, before the operations are actually finished on the GPU. Since each of our events depend on the previous one finishing, we need some way of achieving our desired ordering, luckily Vulkan provides primitives for that exact purpose. Similarly to how semaphores are used to synchronize multithreaded applications, Vulkan provides primitives **VkSemaphore** and **VkFence** for synchronization. **VkSemaphore** is used to synchronize work between GPU commands (for example, synchronizing execution of two GPU operations) and **VkFence** is used to synchronize between GPU and CPU (for example, when the CPU needs to know whether a set of GPU operations has completed). **VkFence** actually does block host execution so use it sparingly.
+
+### Subpass dependencies
+Even though we only use 1 subpass, the operations right before and right after our subpass count as implicit “subpasses” and require some implementation to synchronize. I'll have to read more about subpass dependency, the tutorial doesn't go into enough details.
+
+### Presentation
+Adding everything mentioned in this section together, we're finally able to draw our triangle.
