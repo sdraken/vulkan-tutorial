@@ -262,3 +262,8 @@ Even though we only use 1 subpass, the operations right before and right after o
 
 ### Presentation
 Adding everything mentioned in this section together, we're finally able to draw our triangle.
+
+## Frames in flight
+One of the flaws with our current basic drawing function, is that we wait for the previous frame to finish before we start rendering the next. To get rid of this unnecesssary idling we can allow multiple frames to be *in-flight* at once. You don't want to many frames *in-flight* because then the CPU could get ahead of the GPU, adding frames of latency.
+
+Adding this functionality isn't to complicated, you just need to keep track of the current frame, and for each of these frames, duplicate all the resources that are accessed/modified during rendering. Each frame needs its own, Command buffer, semaphores and fence. 
