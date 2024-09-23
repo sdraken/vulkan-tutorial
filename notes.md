@@ -300,3 +300,6 @@ A very important thing you might notice is that currently swap chain recreation 
 Ideally, all drivers and platforms would trigger VK_ERROR_OUT_OF_DATE_KHR automatically after a window resize, but this is not a guarantee. Because of this we'll handle resizes explicitly. This involves using the **glfwSetFramebufferSizeCallback** function to setup a callback function that's gets called whenever our **GLFWwindow** is resized.
 
 ("It is important to do this after vkQueuePresentKHR to ensure that the semaphores are in a consistent state, otherwise a signaled semaphore may never be properly waited upon.")
+
+## Handling minimization
+Lastly we will consider a special kind of window resizing, that being window minimization. This special case results in a frame buffer of size 0. We'll handle a framebuffer of size 0 by simply pausing until the window is no longer minimized (Not really a good solution?).
