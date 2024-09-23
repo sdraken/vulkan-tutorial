@@ -115,14 +115,23 @@ class HelloTriangleApplication {
         std::vector<VkFence> inFlightFences;
         uint32_t currentFrame = 0;
 
+        bool framebufferResized = false;
+
         //initiates GLFW and creates a window
         void initWindow(){
             glfwInit();
             
             glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);                   //tells GLFW not to make OpenGL context (default)
-            glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);                     //disable resizable windows
 
             window = glfwCreateWindow(WIDTH,HEIGHT,"Vulkan",nullptr,nullptr);    //creates window
+            glfwSetWindowUserPointer(window, this);
+            glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
+        }
+
+        //define callback function for when GLFWwindow is resized
+        static void framebufferResizeCallback(GLFWwindow* window, int width, int height) {
+            auto app = reinterpret_cast<HelloTriangleApplication*>(glfwGetWindowUserPointer(window));
+            app->framebufferResized = true;     
         }
 
         //initiates all Vulkan objects
@@ -772,7 +781,8 @@ class HelloTriangleApplication {
 
             result = vkQueuePresentKHR(presentQueue, &presentInfo);
 
-            if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
+            if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || framebufferResized) {
+                framebufferResized = false;
                 recreateSwapChain();
             } else if (result != VK_SUCCESS) {
                 throw std::runtime_error("failed to present swap chain image!");
