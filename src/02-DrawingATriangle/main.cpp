@@ -722,7 +722,6 @@ class HelloTriangleApplication {
         //draw frame
         void drawFrame() {
             vkWaitForFences(device, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
-            vkResetFences(device, 1, &inFlightFences[currentFrame]);
 
             uint32_t imageIndex;
             VkResult result = vkAcquireNextImageKHR(device, swapChain, UINT64_MAX, imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
@@ -733,6 +732,8 @@ class HelloTriangleApplication {
             } else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
                 throw std::runtime_error("failed to acquire swap chain image!");
             }
+
+            vkResetFences(device, 1, &inFlightFences[currentFrame]);
 
             vkResetCommandBuffer(commandBuffers[currentFrame], /*VkCommandBufferResetFlagBits*/ 0);
             recordCommandBuffer(commandBuffers[currentFrame], imageIndex);
