@@ -313,3 +313,25 @@ The upcoming chapters are a lot shorter compared to chapter 2, so we don't need 
 This chapter is about replacing the hardcoded vertex data that we're currently using, with a vertex buffer in memory.
 
 "We’ll start with the easiest approach of creating a CPU visible buffer and using memcpy to copy the vertex data into it directly, and after that we’ll see how to use a staging buffer to copy the vertex data to high performance memory"
+
+## 3.1 Vertex input description
+First we remove the vertex data from our **shader.vert** file. Instead, to take input from a vertex buffer we use the **in** keyword. When using the **in** keyword, we need to specify what vertex attributes we are taking as an input, and how they are placed within the buffer. In our case we have 2 vertex attributes, **inPosition** and **inColor**. Using the **layout(location = x)** annotations we're also able to assign indices to the inputs (**inPosition** at index 0 and **inColor** index 1). Each vertex attribute can be seen as properties that are specified per-vertex in the vertex buffer.
+
+"It is important to know that some types, like **dvec3** 64 bit vectors, use multiple slots. That means that the index after it must be at least 2 higher"
+
+Next we simply create a **Vertex** structure in the code of our program with the two attributes that we’re going to use in the vertex shader. We can use this structure to create an array of vertex data that can be uploaded into GPU memory.
+
+Once the vertex data has been uploaded to GPU memory, we also need to tell Vulkan how to pass this data to the vertex shader. Two structures are used to convey this information,
+
+**VkVertexInputBindingDescription**: Describes at which rate to load data from memory throughout the vertices. It specifies,
+- A **binding** parameter describing the index of this binding in the array of bindings (we only have 1).
+- A **stride** parameter describing the number of bytes between data entries (vertices in our case).
+- A **inputRate** parameter describing whether to move to the next data entry after each vertex or each instance.
+
+**VkVertexInputAttributeDescription**: Describes how to extract a vertex attribute from vertex data originating from a binding description. We'll need two of these structures, one for **inPosition** and another for **inColor**. Each structure specifies,
+- A **binding** parameter describing which binding the per-vertex data comes (we only have 1).
+- A **location** parameter describing the location of the attribute in the vertex shader.
+- A **format** parameter describing the size and type of the vertex attribute data.
+- A **offset** parameter describing the number of bytes of this attribute relative to the start of the per-vertex data.
+
+The graphics pipeline needs to be setup to accept vertex data in this format by referencing the **VkVertexInputBindingDescription** and **VkVertexInputAttributeDescription** structures during its creation. This is done through the **vertexInputInfo** struct.
