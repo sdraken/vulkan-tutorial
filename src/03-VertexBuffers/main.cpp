@@ -504,8 +504,8 @@ class HelloTriangleApplication {
 
         //create graphics pipeline
         void createGraphicsPipeline() {
-            auto vertShaderCode = readFile("../src/02-DrawingATriangle/shaders/vert.spv");
-            auto fragShaderCode = readFile("../src/02-DrawingATriangle/shaders/frag.spv");
+            auto vertShaderCode = readFile("../src/03-VertexBuffers/shaders/vert.spv");
+            auto fragShaderCode = readFile("../src/03-VertexBuffers/shaders/frag.spv");
 
             VkShaderModule vertShaderModule = createShaderModule(vertShaderCode);
             VkShaderModule fragShaderModule = createShaderModule(fragShaderCode);
