@@ -98,7 +98,7 @@ Next we need to check if the swap chain is compatible with our window surface, w
 For this tutorial swap chain support is sufficient if there is at least one supported image
 format and one supported presentation mode given our window surface.
 
-Support is now sufficient for creating a swap chain. Since we only required the bare minimum support, there might still be many different modes of varying optimality. So when creating our swapchain we pick our preferred settings out of what is available. After the swap chain has been created we need new **VkImage** handles to the images in the swap chain
+Support is now sufficient for creating a swap chain. Since we only required the bare minimum support, there might still be many different modes of varying optimality. So when creating our swapchain we pick our preferred settings out of what is available (something to revisit is how to handle swap chain images that will be used across multiple queue families). After the swap chain has been created we need new **VkImage** handles to the images in the swap chain
 
 ### Image views
 The **VkImage** object holds the data for the image but it doesn't contain a lot of information on how to read it. To use any **VkImage** in a render pipeline we have to create a **VkImageView** object. The **VkImageView** describes how to access the image and which part of the image to access. So to enable us to use the images in our swap chain, we need to create a **VkImageView** for every one of those images.
@@ -335,3 +335,10 @@ Once the vertex data has been uploaded to GPU memory, we also need to tell Vulka
 - A **offset** parameter describing the number of bytes of this attribute relative to the start of the per-vertex data.
 
 The graphics pipeline needs to be setup to accept vertex data in this format by referencing the **VkVertexInputBindingDescription** and **VkVertexInputAttributeDescription** structures during its creation. This is done through the **vertexInputInfo** struct.
+
+## 3.2 Vertex buffer creation
+If we tried running our program after 3.1 we'd get an error because there is no vertex buffer bound to our binding. We need to create a vertex buffer and move the vertex data to it so the GPU is able to access it.
+
+Buffers in vulkan are regions of memory used for storing arbitrary data that can be read by the graphics card, the vertex buffer is simply a buffer storing vertex data. **VkBuffer** is the Vulkan object used for buffers, creation and cleanup is similar to most Vulkan objects. For creation we fill out a **VkBufferCreateInfo**, and we have to make sure to deallocate the resources during cleanup.
+
+Unlike most other Vulkan objects the **VkBuffer** doesn't automatically allocate memory to itself. We'll need to use a **VkDeviceMemory** object as a handle to the memory and use **vkAllocateMemory** to allocate device memory. After successfully allocating memory, we need to associate it with the buffer using **vkBindBufferMemory**. (don't forget this allocated device memory needs to be freed separately from the **VkBuffer**). Lastly we copy the vertex data to the buffer and modify the rendering operations to use the vertex buffer.
