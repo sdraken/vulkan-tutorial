@@ -342,3 +342,23 @@ If we tried running our program after 3.1 we'd get an error because there is no 
 Buffers in vulkan are regions of memory used for storing arbitrary data that can be read by the graphics card, the vertex buffer is simply a buffer storing vertex data. **VkBuffer** is the Vulkan object used for buffers, creation and cleanup is similar to most Vulkan objects. For creation we fill out a **VkBufferCreateInfo**, and we have to make sure to deallocate the resources during cleanup.
 
 Unlike most other Vulkan objects the **VkBuffer** doesn't automatically allocate memory to itself. We'll need to use a **VkDeviceMemory** object as a handle to the memory and use **vkAllocateMemory** to allocate device memory. After successfully allocating memory, we need to associate it with the buffer using **vkBindBufferMemory**. (don't forget this allocated device memory needs to be freed separately from the **VkBuffer**). Lastly we copy the vertex data to the buffer and modify the rendering operations to use the vertex buffer.
+
+## 3.3 Staging buffer
+Our current setup works but we use a memory type that allows us to access it from the CPU (indicated by the **VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT** and **VK_MEMORY_PROPERTY_HOST_COHERENT_BIT** flags) which is probably not the optimal memory type for the GPU. The most optimal memory has the **VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT** but that's not usually accessible by the CPU. To use this memory we have to use 2 vertex buffers, a staging buffer in CPU accessible memory that we can upload the vertex data to, and a buffer in device local memory. We'll then use a buffer copy command to get the data from the staging buffer to our 'real' vertex buffer.
+
+A queue family that supports transfer operations is reqired for the buffer copy command, luckly any queue family with the graphics or compute capabilities (**VK_QUEUE_GRAPHICS_BIT** or **VK_QUEUE_COMPUTE_BIT** flags) implicitly support transfer operations (**VK_QUEUE_TRANSFER_BIT** flag) so we don't need to worry about it. 
+
+We generalize buffer creation since we're using multiple different buffers. Then when we create our 2 buffers we need 2 new buffer usage flags, **VK_BUFFER_USAGE_TRANSFER_SRC_BIT** for staging buffer and **VK_BUFFER_USAGE_TRANSFER_DST_BIT** for buffer on device local memory. The stage buffer can be allocated in the same way as before, using **vkMapMemory** but we aren't going to be able to use that for our device local vertex buffer. This is where we'll use the transfer operations disscused previously to copy data from the staging buffer to our 'real' vertex buffer. 
+
+Memory transfer operations are executed using command buffers, just like drawing commands. The steps look something like,
+1. Create command buffer
+2. Record command to copy stage buffer to vertex buffer on device local memory.
+3. submit work to queue for transfer capabilities
+4. Wait for it to be done
+5. Deallocate command buffer
+6. Deallocate staging buffer
+
+Optimizations to consider,
+- "You may wish to create a separate command pool for these kinds of short-lived buffers, because the implementation may be able to apply memory allocation optimizations"
+- "We could use a fence and wait with vkWaitForFences, or simply wait for the transfer queue to become idle with vkQueueWaitIdle. A fence would allow you to schedule multiple transfers simultaneously and wait for all of them complete, instead of executing one at a time. That may give the driver more opportunities to optimize."
+- "It should be noted that in a real world application, you’re not supposed to actually call vkAllocateMemory for every individual buffer. The maximum number of simultaneous memory allocations is limited by the maxMemoryAllocationCount physical device limit, which may be as low as 4096 even on high end hardware like an NVIDIA GTX 1080. The right way to allocate memory for a large number of objects at the same time is to create a custom allocator that splits up a single allocation among many different objects by using the offset parameters that we’ve seen in many functions."
