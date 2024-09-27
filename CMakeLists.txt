@@ -10,3 +10,6 @@ target_link_libraries(DevelopmentEnvironment glfw  Vulkan::Vulkan)
 
 add_executable(DrawingATriangle src/02-DrawingATriangle/main.cpp)
 target_link_libraries(DrawingATriangle glfw  Vulkan::Vulkan)
+
+add_executable(VertexBuffers src/03-VertexBuffers/main.cpp)
+target_link_libraries(VertexBuffers glfw  Vulkan::Vulkan)
