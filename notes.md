@@ -365,3 +365,5 @@ Optimizations to consider,
 
 ## 3.4 Index buffer
 Imagine we want to make a rectangle, we would need 2 triangles that share 2 vertices. To avoid redundancy we can specify vertices only once and use an index buffer to specify what vertices make up a triangle. The setup for the index buffer is almost identical to that of the vertex buffer that we've done in 3.2 and 3.3, the differences being **bufferSize** and usage of the **VK_BUFFER_USAGE_INDEX_BUFFER_BIT** instead of the **VK_BUFFER_USAGE_VERTEX_BUFFER_BIT** flag. Aside from that you also need to change what's recorded to the command buffer when drawing, binding the index buffer and using **vkCmdDrawIndexed** instead of **vkCmdDraw**.
+
+# Chapter 4 Uniform buffers
