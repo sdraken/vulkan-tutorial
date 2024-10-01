@@ -393,3 +393,13 @@ Something important to keep in mind is alignment requirements, the UBO structure
 Lastly, it's actually possible to bind multiple descriptor sets simultaneously. For this you need to specify a descriptor layout for each descriptor set when creating the pipeline layout, shaders can then reference specific descriptor sets.
 
 "You can use this feature to put descriptors that vary per-object and descriptors that are shared into separate descriptor sets. In that case you avoid rebinding most of the descriptors across draw calls which is potentially more efficient. "
+
+# Chapter 5 Texture mapping
+So far we've colored each vertex and from that calculate how we should color the surfaces. By implementing texture mapping we're going to be able to 'color' these surfaces based upon a texture/image. This will involve the following steps
+
+1. Create an image object backed by device memory
+2. Fill it with pixels from an image file
+3. Create an image sampler
+4. Add a combined image sampler descriptor to sample colors from the texture
+
+It's unclear exactly what the last two steps entail, we'll learn more about image samplers in 5.2 and combined image samplers in 5.3

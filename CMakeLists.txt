@@ -16,3 +16,6 @@ target_link_libraries(VertexBuffers glfw  Vulkan::Vulkan)
 
 add_executable(UniformBuffers src/04-UniformBuffers/main.cpp)
 target_link_libraries(UniformBuffers glfw  Vulkan::Vulkan)
+
+add_executable(TextureMapping src/05-TextureMapping/main.cpp)
+target_link_libraries(TextureMapping glfw  Vulkan::Vulkan)
