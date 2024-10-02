@@ -403,3 +403,14 @@ So far we've colored each vertex and from that calculate how we should color the
 4. Add a combined image sampler descriptor to sample colors from the texture
 
 It's unclear exactly what the last two steps entail, we'll learn more about image samplers in 5.2 and combined image samplers in 5.3
+
+## 5.1 Images
+We've already worked with **VkImage** objects when we implemented the swap chain, but allocation of these images was automatically handled by the **VK_KHR_swapchain** extension. Creating our own image and filling it with data is very similar to vertex buffer creation. We use a staging image/buffer, fill it with pixel data and then copy this to the final image object that will be used for rendering. Vulkan actually allows you to copy pixels to an image from a buffer or image, and surprisingly using a stage buffer is faster on some (most or just some?) hardware.
+
+We're pretty familiar with buffer creation and images are not very different. We still query memory requirements, allocate device memory and bind it. There are some unique parameters that need to be specified but most of them aren't that complicated. Image layouts are something unique to images that need extra consideration. The image layout affects how the pixels are organized in memory and different parts of the GPU pipeline may require images to be in a specific format. To transition between image layouts we'll be using pipeline barriers. (revisit the special image layout VK_IMAGE_LAYOUT_GENERAL)
+
+Pipeline barriers is a Vulkan mechanism whose primary purpose is synchronizing access to resources, but it can also be used to transition between image layouts. Submitting a pipeline barrier is done by filling out a **VkImageMemoryBarrier** struct specifying the parameters of an image memory barrier, then by using **vkCmdPipelineBarrier** to record the command that sets up the memory dependency. The recorded command is lastly submitted. (read more about masks brought up in the chapter)
+
+Keep in mind that in this tutorial we execute commands synchronously. When making my own application it's a lot more efficient to record many commands before executing them all (although this might introduce synchronization problems).
+
+(external library is used to load images, stb_image.h)
