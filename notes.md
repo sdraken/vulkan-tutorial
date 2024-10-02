@@ -414,3 +414,10 @@ Pipeline barriers is a Vulkan mechanism whose primary purpose is synchronizing a
 Keep in mind that in this tutorial we execute commands synchronously. When making my own application it's a lot more efficient to record many commands before executing them all (although this might introduce synchronization problems).
 
 (external library is used to load images, stb_image.h)
+
+## 5.2 Image view and sampler
+Like previously, images are accessed through **VkImageView** objects so we need to create one for our texture image.
+
+Additionally, to read texels from the image we use a sampler. It is possible to read texels from the image directly, but samplers have more functionality when it comes to filtering and transforming the input into the final color that is retrieved. For example, a sampler can help with problems like over- and undersampling through filtering. The sampler can also take care of transformations and help when you read texels outside the image.
+
+Sampler creation is quite simple, we just fill out a VkSamplerCreateInfo, specifying what filters and transformations that it should apply (extra care with anisotropy, as it's an optional device feature). Note that we never need to reference our texture when we create our sampler. This is because the sampler is a distinct object that can be applied to any image.
