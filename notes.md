@@ -393,3 +393,45 @@ Something important to keep in mind is alignment requirements, the UBO structure
 Lastly, it's actually possible to bind multiple descriptor sets simultaneously. For this you need to specify a descriptor layout for each descriptor set when creating the pipeline layout, shaders can then reference specific descriptor sets.
 
 "You can use this feature to put descriptors that vary per-object and descriptors that are shared into separate descriptor sets. In that case you avoid rebinding most of the descriptors across draw calls which is potentially more efficient. "
+
+# Chapter 5 Texture mapping
+So far we've colored each vertex and from that calculate how we should color the surfaces. By implementing texture mapping we're going to be able to 'color' these surfaces based upon a texture/image. This will involve the following steps
+
+1. Create an image object backed by device memory
+2. Fill it with pixels from an image file
+3. Create an image sampler
+4. Add a combined image sampler descriptor to sample colors from the texture
+
+It's unclear exactly what the last two steps entail, we'll learn more about image samplers in 5.2 and combined image samplers in 5.3
+
+## 5.1 Images
+We've already worked with **VkImage** objects when we implemented the swap chain, but allocation of these images was automatically handled by the **VK_KHR_swapchain** extension. Creating our own image and filling it with data is very similar to vertex buffer creation. We use a staging image/buffer, fill it with pixel data and then copy this to the final image object that will be used for rendering. Vulkan actually allows you to copy pixels to an image from a buffer or image, and surprisingly using a stage buffer is faster on some (most or just some?) hardware.
+
+We're pretty familiar with buffer creation and images are not very different. We still query memory requirements, allocate device memory and bind it. There are some unique parameters that need to be specified but most of them aren't that complicated. Image layouts are something unique to images that need extra consideration. The image layout affects how the pixels are organized in memory and different parts of the GPU pipeline may require images to be in a specific format. To transition between image layouts we'll be using pipeline barriers. (revisit the special image layout VK_IMAGE_LAYOUT_GENERAL)
+
+Pipeline barriers is a Vulkan mechanism whose primary purpose is synchronizing access to resources, but it can also be used to transition between image layouts. Submitting a pipeline barrier is done by filling out a **VkImageMemoryBarrier** struct specifying the parameters of an image memory barrier, then by using **vkCmdPipelineBarrier** to record the command that sets up the memory dependency. The recorded command is lastly submitted. (read more about masks brought up in the chapter)
+
+Keep in mind that in this tutorial we execute commands synchronously. When making my own application it's a lot more efficient to record many commands before executing them all (although this might introduce synchronization problems).
+
+(external library is used to load images, stb_image.h)
+
+## 5.2 Image view and sampler
+Like previously, images are accessed through **VkImageView** objects so we need to create one for our texture image.
+
+Additionally, to read texels from the image we use a sampler. It is possible to read texels from the image directly, but samplers have more functionality when it comes to filtering and transforming the input into the final color that is retrieved. For example, a sampler can help with problems like over- and undersampling through filtering. The sampler can also take care of transformations and help when you read texels outside the image.
+
+Sampler creation is quite simple, we just fill out a VkSamplerCreateInfo, specifying what filters and transformations that it should apply (extra care with anisotropy, as it's an optional device feature). Note that we never need to reference our texture when we create our sampler. This is because the sampler is a distinct object that can be applied to any image.
+
+## 5.3 Combined image sampler
+The only thing that remains is to make it so that the shaders can read from the sampler. Like we discussed previously, the way we enable shaders to access resources is through descriptors. When accessing a uniform buffer you use a descriptor of type **VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER**, when working with sampler you use a descriptor of type **VK_DESCRIPTOR_TYPE_SAMPLER** or **VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER**. We will use **VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER** since we only use 1 texture.
+
+Since our combined image sampler descriptor will be used in the same render pass as the uniform buffer descriptor, we just need to add it to our already created descriptor set. We need to,
+1. update **VkDescriptorPool** creation, specifying that the pool will allocate a number of image sampler descriptors equal to the amount of frames in flight.
+2. update **VkDescriptorSetLayout** creation, specifying image sampler descriptor as the second binding in the layout.
+3. update **VkDescriptorSet** creation to bind the actual image and sampler resources to the image sampler descriptor in each descriptor set. We still create the same number of description sets, but each set includes 2 descriptors. We also don't need more change in the allocation of the description sets since it's being specified using our already updated **VkDescriptorPool** and **VkDescriptorSetLayout**.
+
+(Apparently inadequate descriptor pools is something validation layers will not catch).
+
+Two things remain, first is adding texture coordinates (UV-coordinates ?) to each vertex to determine how the image actually maps to the geometry. Then we need to update the shaders to actually sample colors from the texture. The vertex shader needs to pass the texture coordinates along for the fragmentation shader to use. The fragmentation shader needs to be modified to take the texture coordinates passed along by the vertex shader. Additionally it needs to get a hold of the combined image sampler by referencing it using the correct binding. Lastly the fragmentation shader needs to use the built-in 'texture' function to use the sampler and the passed along texture coordinates.
+
+"Make sure to also add a VkVertexInputAttributeDescription so that we can access texture coordinates as input in the vertex shader. That is necessary to be able to pass them to the fragment shader for interpolation across the surface of the square." (is this true? makes intuitive sense but good to make sure)

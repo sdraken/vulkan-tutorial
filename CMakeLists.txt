@@ -3,6 +3,9 @@ project(vulkan-tutorial)
 #add_compile_definitions(NDEBUG)
 set(CMAKE_CXX_STANDARD 17)
 find_package(Vulkan REQUIRED)
+
+
+set(glfw3_DIR libs/glfw3/lib/cmake/glfw3)
 find_package(glfw3 REQUIRED)
 
 add_executable(DevelopmentEnvironment src/01-DevelopmentEnvironment/main.cpp)
@@ -16,3 +19,10 @@ target_link_libraries(VertexBuffers glfw  Vulkan::Vulkan)
 
 add_executable(UniformBuffers src/04-UniformBuffers/main.cpp)
 target_link_libraries(UniformBuffers glfw  Vulkan::Vulkan)
+
+add_executable(TextureMapping src/05-TextureMapping/main.cpp)
+target_link_libraries(TextureMapping glfw  Vulkan::Vulkan)
+target_include_directories(TextureMapping
+    PRIVATE 
+        ${PROJECT_SOURCE_DIR}/include
+)
