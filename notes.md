@@ -421,3 +421,17 @@ Like previously, images are accessed through **VkImageView** objects so we need 
 Additionally, to read texels from the image we use a sampler. It is possible to read texels from the image directly, but samplers have more functionality when it comes to filtering and transforming the input into the final color that is retrieved. For example, a sampler can help with problems like over- and undersampling through filtering. The sampler can also take care of transformations and help when you read texels outside the image.
 
 Sampler creation is quite simple, we just fill out a VkSamplerCreateInfo, specifying what filters and transformations that it should apply (extra care with anisotropy, as it's an optional device feature). Note that we never need to reference our texture when we create our sampler. This is because the sampler is a distinct object that can be applied to any image.
+
+## 5.3 Combined image sampler
+The only thing that remains is to make it so that the shaders can read from the sampler. Like we discussed previously, the way we enable shaders to access resources is through descriptors. When accessing a uniform buffer you use a descriptor of type **VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER**, when working with sampler you use a descriptor of type **VK_DESCRIPTOR_TYPE_SAMPLER** or **VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER**. We will use **VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER** since we only use 1 texture.
+
+Since our combined image sampler descriptor will be used in the same render pass as the uniform buffer descriptor, we just need to add it to our already created descriptor set. We need to,
+1. update **VkDescriptorPool** creation, specifying that the pool will allocate a number of image sampler descriptors equal to the amount of frames in flight.
+2. update **VkDescriptorSetLayout** creation, specifying image sampler descriptor as the second binding in the layout.
+3. update **VkDescriptorSet** creation to bind the actual image and sampler resources to the image sampler descriptor in each descriptor set. We still create the same number of description sets, but each set includes 2 descriptors. We also don't need more change in the allocation of the description sets since it's being specified using our already updated **VkDescriptorPool** and **VkDescriptorSetLayout**.
+
+(Apparently inadequate descriptor pools is something validation layers will not catch).
+
+Two things remain, first is adding texture coordinates (UV-coordinates ?) to each vertex to determine how the image actually maps to the geometry. Then we need to update the shaders to actually sample colors from the texture. The vertex shader needs to pass the texture coordinates along for the fragmentation shader to use. The fragmentation shader needs to be modified to take the texture coordinates passed along by the vertex shader. Additionally it needs to get a hold of the combined image sampler by referencing it using the correct binding. Lastly the fragmentation shader needs to use the built-in 'texture' function to use the sampler and the passed along texture coordinates.
+
+"Make sure to also add a VkVertexInputAttributeDescription so that we can access texture coordinates as input in the vertex shader. That is necessary to be able to pass them to the fragment shader for interpolation across the surface of the square." (is this true? makes intuitive sense but good to make sure)

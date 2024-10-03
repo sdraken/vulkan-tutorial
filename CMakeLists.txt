@@ -3,6 +3,9 @@ project(vulkan-tutorial)
 #add_compile_definitions(NDEBUG)
 set(CMAKE_CXX_STANDARD 17)
 find_package(Vulkan REQUIRED)
+
+
+set(glfw3_DIR libs/glfw3/lib/cmake/glfw3)
 find_package(glfw3 REQUIRED)
 
 add_executable(DevelopmentEnvironment src/01-DevelopmentEnvironment/main.cpp)
