@@ -26,3 +26,10 @@ target_include_directories(TextureMapping
     PRIVATE 
         ${PROJECT_SOURCE_DIR}/include
 )
+
+add_executable(DepthBuffering src/06-DepthBuffering/main.cpp)
+target_link_libraries(DepthBuffering glfw  Vulkan::Vulkan)
+target_include_directories(DepthBuffering
+    PRIVATE 
+        ${PROJECT_SOURCE_DIR}/include
+)
