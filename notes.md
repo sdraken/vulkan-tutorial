@@ -435,3 +435,5 @@ Since our combined image sampler descriptor will be used in the same render pass
 Two things remain, first is adding texture coordinates (UV-coordinates ?) to each vertex to determine how the image actually maps to the geometry. Then we need to update the shaders to actually sample colors from the texture. The vertex shader needs to pass the texture coordinates along for the fragmentation shader to use. The fragmentation shader needs to be modified to take the texture coordinates passed along by the vertex shader. Additionally it needs to get a hold of the combined image sampler by referencing it using the correct binding. Lastly the fragmentation shader needs to use the built-in 'texture' function to use the sampler and the passed along texture coordinates.
 
 "Make sure to also add a VkVertexInputAttributeDescription so that we can access texture coordinates as input in the vertex shader. That is necessary to be able to pass them to the fragment shader for interpolation across the surface of the square." (is this true? makes intuitive sense but good to make sure)
+
+# Chapter 6 Depth Buffering
