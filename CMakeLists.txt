@@ -2,10 +2,9 @@ cmake_minimum_required(VERSION 3.16)
 project(vulkan-tutorial)
 #add_compile_definitions(NDEBUG)
 set(CMAKE_CXX_STANDARD 17)
+
+
 find_package(Vulkan REQUIRED)
-
-
-set(glfw3_DIR libs/glfw3/lib/cmake/glfw3)
 find_package(glfw3 REQUIRED)
 
 add_executable(DevelopmentEnvironment src/01-DevelopmentEnvironment/main.cpp)
@@ -24,12 +23,12 @@ add_executable(TextureMapping src/05-TextureMapping/main.cpp)
 target_link_libraries(TextureMapping glfw  Vulkan::Vulkan)
 target_include_directories(TextureMapping
     PRIVATE 
-        ${PROJECT_SOURCE_DIR}/include
+        ${THIRD_PARTY_SINGLE_HEADER_LIBRARIES}
 )
 
 add_executable(DepthBuffering src/06-DepthBuffering/main.cpp)
 target_link_libraries(DepthBuffering glfw  Vulkan::Vulkan)
 target_include_directories(DepthBuffering
     PRIVATE 
-        ${PROJECT_SOURCE_DIR}/include
+        ${THIRD_PARTY_SINGLE_HEADER_LIBRARIES}
 )
