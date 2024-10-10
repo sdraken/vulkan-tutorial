@@ -32,3 +32,10 @@ target_include_directories(DepthBuffering
     PRIVATE 
         ${THIRD_PARTY_SINGLE_HEADER_LIBRARIES}
 )
+
+add_executable(LoadingModels src/07-LoadingModels/main.cpp)
+target_link_libraries(LoadingModels glfw  Vulkan::Vulkan)
+target_include_directories(LoadingModels
+    PRIVATE 
+        ${THIRD_PARTY_SINGLE_HEADER_LIBRARIES}
+)

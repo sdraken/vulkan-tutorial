@@ -448,3 +448,5 @@ To start we need a depth image. We've already gone over the creation of **VkImag
 - Update the render pass to include a depth attachment and modify the subpass dependencies accordingly.
 - Update framebuffer to bind the depth image to the depth attachment (don't forget to add clear values for the depth buffer and that the depth buffer also needs to be recreated when window is resized).
 - Update graphics pipeline to enable depth testing.
+
+# Chapter 7 Loading models
