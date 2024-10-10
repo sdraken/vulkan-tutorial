@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
 project(vulkan-tutorial)
-#add_compile_definitions(NDEBUG)
 set(CMAKE_CXX_STANDARD 17)
 
 
@@ -29,6 +28,16 @@ target_include_directories(TextureMapping
 add_executable(DepthBuffering src/06-DepthBuffering/main.cpp)
 target_link_libraries(DepthBuffering glfw  Vulkan::Vulkan)
 target_include_directories(DepthBuffering
+    PRIVATE 
+        ${THIRD_PARTY_SINGLE_HEADER_LIBRARIES}
+)
+
+
+add_executable(LoadingModels src/07-LoadingModels/main.cpp)
+set_source_files_properties(src/07-LoadingModels/main.cpp PROPERTIES COMPILE_FLAGS "-O3")
+set_source_files_properties(src/07-LoadingModels/main.cpp PROPERTIES COMPILE_DEFINITIONS NDEBUG)
+target_link_libraries(LoadingModels glfw  Vulkan::Vulkan)
+target_include_directories(LoadingModels
     PRIVATE 
         ${THIRD_PARTY_SINGLE_HEADER_LIBRARIES}
 )
