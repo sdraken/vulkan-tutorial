@@ -450,3 +450,10 @@ To start we need a depth image. We've already gone over the creation of **VkImag
 - Update graphics pipeline to enable depth testing.
 
 # Chapter 7 Loading models
+We have all the pieces to load and render a textured model, we just need to load the vertices and texture for a model so we can actually draw it. We can already load textures by using the stb_image library, to load vertices (in the form of a .obj file) we will be using the tinyobjloader library. Once we've picked a model and texture to render we need to,
+
+- Replace our constant global arrays containing vertices/indices with containers that we fill with vertices/indices that are loaded from an .obj file.
+- Implement a function to populate the containers with vertices/indices from an .obj file (utilizing the tinyobjloader library).
+- Use map/unordered_map to keep track of unique vertices, repeated vertices should use the index container. Since this uses a hash table we also need to implement 2 functions for the vertex struct, one to test equality and a hash function.
+
+Exactly how the .obj file is loaded is specific to the tinyobjloader library and I won't be covering that, it's not really relevant or that complicated. Aside from the steps above, note that the tutorial recommends disabling validation layers, as well as using the -O3 compilation flag. It might be smart to read more about compiler flags or related optimization tricks.
